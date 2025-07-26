@@ -1,100 +1,104 @@
 import sqlite3
 import pandas as pd
-import logging
-from ingestion_db import ingest_db
 import time
+import sys
 
-logging.basicConfig(
-    filename='logs/get_vendor_summary.log',
-    level=logging.DEBUG,
-    format='%(asctime)s -%(levelname)s -%(message)s',
-    filemode='a'
-)
+from src.logger import logging
+from src.exception import CustomException
+from ingestion_db import ingest_db
 
 def create_vendor_summary(conn):
-    vendor_sales_summary = pd.read_sql("""
-    WITH FreightSummary AS (
-        SELECT 
-            VendorNumber,
-            SUM(Freight) AS FreightCost 
-        FROM vendor_invoice 
-        GROUP BY VendorNumber
-    ),
+    try:
+        vendor_sales_summary = pd.read_sql("""
+        WITH FreightSummary AS (
+            SELECT 
+                VendorNumber,
+                SUM(Freight) AS FreightCost 
+            FROM vendor_invoice 
+            GROUP BY VendorNumber
+        ),
 
-    PurchaseSummary AS (
-        SELECT 
-            p.VendorNumber, 
-            p.VendorName, 
-            p.Brand, 
-            p.Description,
-            p.PurchasePrice, 
-            pp.Volume, 
-            pp.Price AS ActualPrice, 
-            SUM(p.Quantity) AS TotalPurchaseQuantity, 
-            SUM(p.Dollars) AS TotalPurchaseDollars
-        FROM purchases p 
-        JOIN purchase_prices pp 
-            ON p.Brand = pp.Brand 
-        WHERE p.PurchasePrice > 0
-        GROUP BY 
-            p.VendorNumber, 
-            p.VendorName, 
-            p.Brand, 
-            p.Description, 
-            p.PurchasePrice, 
-            pp.Price, 
-            pp.Volume
-    ),
+        PurchaseSummary AS (
+            SELECT 
+                p.VendorNumber, 
+                p.VendorName, 
+                p.Brand, 
+                p.Description,
+                p.PurchasePrice, 
+                pp.Volume, 
+                pp.Price AS ActualPrice, 
+                SUM(p.Quantity) AS TotalPurchaseQuantity, 
+                SUM(p.Dollars) AS TotalPurchaseDollars
+            FROM purchases p 
+            JOIN purchase_prices pp 
+                ON p.Brand = pp.Brand 
+            WHERE p.PurchasePrice > 0
+            GROUP BY 
+                p.VendorNumber, 
+                p.VendorName, 
+                p.Brand, 
+                p.Description, 
+                p.PurchasePrice, 
+                pp.Price, 
+                pp.Volume
+        ),
 
-    SalesSummary AS (
+        SalesSummary AS (
+            SELECT
+                VendorNo,
+                Brand,
+                SUM(SalesDollars) AS TotalSalesDollars,
+                SUM(SalesPrice) AS TotalSalesPrice,
+                SUM(SalesQuantity) AS TotalSalesQuantity,
+                SUM(ExciseTax) AS TotalExciseTax
+            FROM sales
+            GROUP BY VendorNo, Brand
+        )
+
         SELECT
-            VendorNo,
-            Brand,
-            SUM(SalesDollars) AS TotalSalesDollars,
-            SUM(SalesPrice) AS TotalSalesPrice,
-            SUM(SalesQuantity) AS TotalSalesQuantity,
-            SUM(ExciseTax) AS TotalExciseTax
-        FROM sales
-        GROUP BY VendorNo, Brand
-    )
-
-    SELECT
-        ps.VendorNumber,
-        ps.VendorName,
-        ps.Brand,
-        ps.Description,
-        ps.PurchasePrice,
-        ps.ActualPrice,
-        ps.Volume,
-        ps.TotalPurchaseQuantity,
-        ps.TotalPurchaseDollars,
-        ss.TotalSalesQuantity,
-        ss.TotalSalesDollars,
-        ss.TotalSalesPrice,
-        ss.TotalExciseTax,
-        fs.FreightCost
-    FROM PurchaseSummary ps
-    LEFT JOIN SalesSummary ss
-        ON ps.VendorNumber = ss.VendorNo
-        AND ps.Brand = ss.Brand
-    LEFT JOIN FreightSummary fs
-        ON ps.VendorNumber = fs.VendorNumber
-    ORDER BY ps.TotalPurchaseDollars DESC
-    """, conn)
+            ps.VendorNumber,
+            ps.VendorName,
+            ps.Brand,
+            ps.Description,
+            ps.PurchasePrice,
+            ps.ActualPrice,
+            ps.Volume,
+            ps.TotalPurchaseQuantity,
+            ps.TotalPurchaseDollars,
+            ss.TotalSalesQuantity,
+            ss.TotalSalesDollars,
+            ss.TotalSalesPrice,
+            ss.TotalExciseTax,
+            fs.FreightCost
+        FROM PurchaseSummary ps
+        LEFT JOIN SalesSummary ss
+            ON ps.VendorNumber = ss.VendorNo
+            AND ps.Brand = ss.Brand
+        LEFT JOIN FreightSummary fs
+            ON ps.VendorNumber = fs.VendorNumber
+        ORDER BY ps.TotalPurchaseDollars DESC
+        """, conn)
+        
+        return vendor_sales_summary
     
-    return vendor_sales_summary
+    except Exception as e:
+        raise CustomException(e, sys)
 
 def clean_data(df):
-    df['Volume'] = df['Volume'].astype('float64')
-    df.fillna(0, inplace = True)
-    df['VendorName'] = df['VendorName'].str.strip()
-    df['Description'] = df['Description'].str.strip()    
-    df['GrossProfit'] = df['TotalSalesDollars'] - df['TotalPurchaseDollars']
-    df['ProfitMargin'] = (df['GrossProfit'] / df['TotalSalesDollars']) * 100
-    df['StockTurnover'] = df['TotalSalesQuantity'] / df['TotalPurchaseQuantity']
-    df['SalesToPurchaseRatio'] = df['TotalSalesDollars'] / df['TotalPurchaseDollars']
+    try:
+        df['Volume'] = df['Volume'].astype('float64')
+        df.fillna(0, inplace = True)
+        df['VendorName'] = df['VendorName'].str.strip()
+        df['Description'] = df['Description'].str.strip()    
+        df['GrossProfit'] = df['TotalSalesDollars'] - df['TotalPurchaseDollars']
+        df['ProfitMargin'] = (df['GrossProfit'] / df['TotalSalesDollars']) * 100
+        df['StockTurnover'] = df['TotalSalesQuantity'] / df['TotalPurchaseQuantity']
+        df['SalesToPurchaseRatio'] = df['TotalSalesDollars'] / df['TotalPurchaseDollars']
     
-    return df
+        return df
+    
+    except Exception as e:
+        raise CustomException(e, sys)
 
 if __name__ == '__main__':
     
