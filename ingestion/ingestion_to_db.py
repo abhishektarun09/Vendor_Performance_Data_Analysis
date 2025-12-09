@@ -5,9 +5,9 @@ import sys
 
 from src.logger import logging
 from src.exception import CustomException
-from sqlalchemy import create_engine
+from src.postgres_session import get_postgres_connection
 
-engine = create_engine('sqlite:///inventory.db')
+engine = get_postgres_connection()
 
 def ingest_db(df, table_name, engine):
     """This function ingests data into SQL Database"""
