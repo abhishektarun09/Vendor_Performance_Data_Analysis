@@ -1,0 +1,20 @@
+version: 1
+
+sources:
+  - name: raw
+    schema: raw
+    tables:
+      - name: begin_inventory
+      - name: end_inventory
+      - name: purchase_prices
+      - name: purchases
+      - name: sales
+      - name: vendor_invoice
+
+models:
+  - name: stg_begin_inventory
+  - name: stg_end_inventory
+  - name: stg_purchase_prices
+  - name: stg_purchases
+  - name: stg_sales
+  - name: stg_vendor_invoice
