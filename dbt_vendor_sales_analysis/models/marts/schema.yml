@@ -1,0 +1,15 @@
+version: 1
+
+sources:
+  - name: staging
+    schema: vendor_sales_staging
+    tables:
+      - name: stg_begin_inventory
+      - name: stg_end_inventory
+      - name: stg_purchase_prices
+      - name: stg_purchases
+      - name: stg_sales
+      - name: stg_vendor_invoice
+
+models:
+  - name: vendor_sales_mart
