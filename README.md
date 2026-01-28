@@ -7,12 +7,12 @@ This project examines retail sales, vendor performance, and inventory behavior t
 ## Dataset
 - Source: USA Open Data Portal
 - Tables (no. of records):
-    - sales (12,825,363) 
-    - begin_inventory (206,529)
-    - end_inventory (224,489)
-    - purchases (2,372,474)
-    - purchase_prices (12,261)
-    - vendor_invoice (5,543)
+    - sales (12.8M) 
+    - begin_inventory (206K)
+    - end_inventory (224K)
+    - purchases (2.3M)
+    - purchase_prices (12K)
+    - vendor_invoice (5K)
 - Time period: 2024- 2025
 - Key features:
   - purchase price
@@ -25,8 +25,6 @@ This project examines retail sales, vendor performance, and inventory behavior t
 - Removed sales with missing prices
 - Converted volume from string to numeric
 - Created new features such as Gross Profit, Stock Turnover, Profit Margin etc.
-
-
 
 ## Business Problem
 - Identify underperforming brands that require promotional or pricing adjustments.
@@ -45,11 +43,80 @@ This project examines retail sales, vendor performance, and inventory behavior t
 ## Power BI Dashboard
 ![Dashboard](resources/dashboard.png)
 
-## Tools Used
-- SQL (PostgreSQL)
-- Python (pandas)
-- Visualization: matplotlib, seaborn, Power BI
-- Environment: Modular Python Codes, Jupyter Notebook
+## Data Architecture (BigQuery + dbt)
+
+This project follows a medallion architecture implemented in BigQuery and orchestrated using dbt.
+
+🥉 Bronze (Raw)
+
+🥈 Silver (Cleaned & Enriched)
+
+🥇 Gold (Analytics / Fact Tables)
+
+
+## Feature Engineering
+
+- Created consolidated sales summary by joining purchases, sales, pricing, and freight data on BigQuery using dbt
+
+- Removed records with missing or invalid prices
+
+- Converted volume from string to numeric
+
+- Engineered business KPIs:
+
+  - Gross Profit
+
+  - Profit Margin
+
+  - Stock Turnover
+
+  - Sales-to-Purchase Ratio
+
+## Data Quality & Testing (dbt)
+
+Data quality is enforced using dbt tests, including both schema tests and custom SQL tests.
+
+### Schema Tests
+
+- `not_null` checks on primary identifiers
+
+- Non-negative constraints on quantity and dollar values
+
+- Conditional tests allowing NULLs where data may be unavailable
+
+### Business Logic Tests
+
+- Gross profit consistency:
+
+  - `GrossProfit = TotalSalesDollars − TotalPurchaseDollars`
+
+- Sanity checks on ratios:
+
+  - Profit margins within realistic bounds
+
+  - No negative stock turnover
+
+## Tools & Technologies
+
+- **Data Warehouse**: BigQuery
+
+- **Transformation & Modeling**: dbt
+
+- **SQL Dialect**: BigQuery SQL
+
+- **Python**: pandas
+
+- **Visualization**: matplotlib, Power BI
+
+- **Environment**: Modular Python scripts, Jupyter Notebook
+
+## How to Run
+1. Clone the repo: `git clone https://github.com/abhishektarun09/Vendor_Performance_Data_Analysis.git`
+2. Install dependencies: `pip install -r requirements.txt`
+3. Set up new virtual environment.
+4. Set up environment variables in `.env`
+5. Run dbt models `dbt run`
+6. Explore insights in `src/notebooks/3_Vendor_Performance_Analysis`.
 
 ## Contact
 - **Author:** Abhishek Tarun 
