@@ -31,15 +31,15 @@ This project examines retail sales, vendor performance, and inventory behavior t
 - Determine top vendors contributing to sales and gross profit.
 - Analyze the impact of bulk purchasing on unit costs.
 - Assess inventory turnover to reduce holding costs and improve efficiency.
-- Investigate using hypothesis testing the profitability variance between high-performing and low-performing brands.
+- Do top-performing vendors have higher mean profit margins than low-performing vendors?
 
 ## Key Insights
 - Total Purchase Contribution of the top 10 vendors is 65.69% suggesting overdependence on top vendors.
 - Bulk buying is ~72% cheaper than small orders for unit cost.
 - Total $ 2.71M capital locked in unsold inventory.
 - Low-revenue vendors maintain higher profit margins than high-revenue vendors, potentially due to premium pricing or lower operational costs.
-- There is a significant difference in the mean profit margins of top-performing and low-performing vendors.
-
+- Using a Welch two-sample t-test, we find a significant difference in mean profit margins between vendors in the top and bottom quartiles of total sales (t = −17.64, p < 0.001). 
+- Vendors in the top sales quartile exhibit lower average profit margins than those in the bottom quartile, indicating a meaningful volume–margin trade-off rather than a purely statistical difference.
 ## Power BI Dashboard
 ![Dashboard](resources/dashboard.png)
 
