@@ -1,4 +1,4 @@
-version: 1
+version: 2
 
 sources:
   - name: staging
@@ -13,3 +13,41 @@ sources:
 
 models:
   - name: vendor_sales_mart
+    description: Vendor-level purchase vs sales profitability
+
+    columns:
+      - name: VendorNumber
+        tests:
+          - not_null
+
+      - name: Brand
+        tests:
+          - not_null
+
+      - name: PurchasePrice
+        tests:
+          - not_null
+
+      - name: TotalPurchaseQuantity
+        tests:
+          - not_null
+          - dbt_utils.expression_is_true:
+              expression: "TotalPurchaseQuantity >= 0"
+
+      - name: TotalPurchaseDollars
+        tests:
+          - not_null
+          - dbt_utils.expression_is_true:
+              expression: "TotalPurchaseDollars >= 0"
+
+      - name: TotalSalesQuantity
+        tests:
+          - dbt_utils.expression_is_true:
+              expression: "TotalSalesQuantity >= 0"
+              where: "TotalSalesQuantity IS NOT NULL"
+
+      - name: TotalSalesDollars
+        tests:
+          - dbt_utils.expression_is_true:
+              expression: "TotalSalesDollars >= 0"
+              where: "TotalSalesDollars IS NOT NULL"
