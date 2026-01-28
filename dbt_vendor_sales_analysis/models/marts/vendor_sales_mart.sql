@@ -45,19 +45,23 @@ WITH FreightSummary AS (
 
         SELECT
             ps.VendorNumber,
-            ps.VendorName,
+            trim(ps.VendorName) as VendorName,
             ps.Brand,
-            ps.Description,
+            trim(ps.Description) as Description,
             ps.PurchasePrice,
             ps.ActualPrice,
-            ps.Volume,
+            cast(ps.Volume as float64) as Volume,
             ps.TotalPurchaseQuantity,
             ps.TotalPurchaseDollars,
             ss.TotalSalesQuantity,
             ss.TotalSalesDollars,
             ss.TotalSalesPrice,
             ss.TotalExciseTax,
-            fs.FreightCost
+            fs.FreightCost,
+            ss.TotalSalesDollars - ps.TotalPurchaseDollars as GrossProfit,
+            (ss.TotalSalesDollars - ps.TotalPurchaseDollars) / ss.TotalSalesDollars * 100 as ProfitMargin,
+            (ss.TotalSalesQuantity / ps.TotalPurchaseQuantity) as StockTurnover,
+            (ss.TotalSalesDollars / ps.TotalPurchaseDollars) as SalesToPurchaseRatio
         FROM PurchaseSummary ps
         LEFT JOIN SalesSummary ss
             ON ps.VendorNumber = ss.VendorNo
