@@ -9,7 +9,7 @@ from src.postgres_session import get_postgres_connection
 
 engine = get_postgres_connection()
 
-def ingest_db(df, table_name, engine):
+def ingest_db_local(df, table_name, engine):
     """This function ingests data into SQL Database"""
     
     try:
@@ -27,7 +27,7 @@ def load_raw_data():
             if '.csv' in file:
                 df = pd.read_csv('data/'+file)
                 logging.info(f"Ingesting {file} in db.")
-                ingest_db(df, file[:-4], engine)
+                ingest_db_local(df, file[:-4], engine)
         end_time = time.time()
         logging.info("----------Ingestion Completed----------")
         total_time = (end_time - start_time)/60
